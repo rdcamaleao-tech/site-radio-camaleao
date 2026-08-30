@@ -1,0 +1,8 @@
+{
+  "name": "RD CAMALEÃO",
+  "description": "Site oficial da Rádio Camaleão 98.5 FM - A rádio que muda com você.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
