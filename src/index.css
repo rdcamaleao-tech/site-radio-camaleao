@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@keyframes sliderProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-slider-progress {
+  animation-name: sliderProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
