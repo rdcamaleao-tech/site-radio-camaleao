@@ -26,18 +26,14 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24
-
-      - name: Instalar Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+          node-version: 20
+          cache: npm
 
       - name: Instalar dependências
-        run: bun install
+        run: npm install
 
       - name: Compilar projeto
-        run: bun run build
+        run: npm run build
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
