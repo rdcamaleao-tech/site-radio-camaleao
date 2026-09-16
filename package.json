@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "cp -f *.jpg *.png public/ 2>/dev/null || true; tsc && vite build",
     "lint": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.4",
     "clsx": "^2.1.1",
     "lucide-react": "^1.35.0",
     "react": "^19.0.0",
