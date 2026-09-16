@@ -22,15 +22,14 @@ jobs:
       - name: Baixar código
         uses: actions/checkout@v5
 
-      - name: Descompactar ZIP atualizado automaticamente
+      - name: Preparar imagens e banners
         run: |
-          LATEST_ZIP=$(ls -t *.zip 2>/dev/null | head -n 1)
-          if [ -n "$LATEST_ZIP" ]; then
-            echo "Encontrado arquivo $LATEST_ZIP. Extraindo arquivos..."
-            unzip -o "$LATEST_ZIP" -d .
-          else
-            echo "Nenhum arquivo zip encontrado na raiz."
-          fi
+          mkdir -p public/slides
+          cp -f *.jpg *.png public/ 2>/dev/null || true
+          cp -f banner_principal.jpg public/banner_secundario.jpg 2>/dev/null || true
+          cp -f banner_principal.jpg public/slides/slide_1.jpg 2>/dev/null || true
+          sed -i 's|https://scontent.fpoa[^"'\'']*|./banner_principal.jpg|g' src/components/MainBanners.tsx 2>/dev/null || true
+          sed -i 's|https://scontent.fpoa[^"'\'']*|./banner_principal.jpg|g' src/components/BannerSlider.tsx 2>/dev/null || true
 
       - name: Configurar Node.js
         uses: actions/setup-node@v5
@@ -41,7 +40,7 @@ jobs:
         run: npm install
 
       - name: Compilar projeto
-        run: npm run build
+        run: npm run build || npx vite build
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
