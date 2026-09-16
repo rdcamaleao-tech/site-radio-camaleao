@@ -18,10 +18,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Baixar código
         uses: actions/checkout@v5
+
+      - name: Descompactar ZIP atualizado automaticamente
+        run: |
+          LATEST_ZIP=$(ls -t *.zip 2>/dev/null | head -n 1)
+          if [ -n "$LATEST_ZIP" ]; then
+            echo "Encontrado arquivo $LATEST_ZIP. Extraindo..."
+            unzip -o "$LATEST_ZIP" -d .
+          fi
 
       - name: Configurar Node.js
         uses: actions/setup-node@v5
@@ -46,10 +53,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
     needs: build
-
     steps:
       - name: Publicar no GitHub Pages
         id: deployment
