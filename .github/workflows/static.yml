@@ -28,8 +28,7 @@ jobs:
           cp -f *.jpg *.png public/ 2>/dev/null || true
           cp -f banner_principal.jpg public/banner_secundario.jpg 2>/dev/null || true
           cp -f banner_principal.jpg public/slides/slide_1.jpg 2>/dev/null || true
-          sed -i 's|https://scontent.fpoa[^"'\'']*|./banner_principal.jpg|g' src/components/MainBanners.tsx 2>/dev/null || true
-          sed -i 's|https://scontent.fpoa[^"'\'']*|./banner_principal.jpg|g' src/components/BannerSlider.tsx 2>/dev/null || true
+          find src -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|https://scontent[^']*|./banner_principal.jpg|g" {} +
 
       - name: Configurar Node.js
         uses: actions/setup-node@v5
