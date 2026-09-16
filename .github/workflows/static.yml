@@ -26,8 +26,10 @@ jobs:
         run: |
           LATEST_ZIP=$(ls -t *.zip 2>/dev/null | head -n 1)
           if [ -n "$LATEST_ZIP" ]; then
-            echo "Encontrado arquivo $LATEST_ZIP. Extraindo..."
+            echo "Encontrado arquivo $LATEST_ZIP. Extraindo arquivos..."
             unzip -o "$LATEST_ZIP" -d .
+          else
+            echo "Nenhum arquivo zip encontrado na raiz."
           fi
 
       - name: Configurar Node.js
