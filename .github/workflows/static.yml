@@ -1,1 +1,71 @@
+name: Deploy Rádio Camaleão
 
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v5
+
+      - name: Descompactar ZIP atualizado automaticamente
+        run: |
+          LATEST_ZIP=$(ls -v *.zip 2>/dev/null | tail -n 1)
+          if [ -n "$LATEST_ZIP" ]; then
+            echo "Encontrado arquivo $LATEST_ZIP. Extraindo arquivos..."
+            unzip -o "$LATEST_ZIP" -d .
+          fi
+          # Auto-correção para compatibilidade de versões antigas de slides
+          if [ -f src/data/defaultSlides.ts ] && ! grep -q "INITIAL_DATABASE_SLIDES" src/data/defaultSlides.ts; then
+            echo 'export const INITIAL_DATABASE_SLIDES = [];' >> src/data/defaultSlides.ts
+          fi
+          mkdir -p public/slides public/banners
+          cp -f *.jpg *.png public/ 2>/dev/null || true
+          cp -f *.jpg *.png public/banners/ 2>/dev/null || true
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: |
+          npm install --legacy-peer-deps || npm install
+          npm install @supabase/supabase-js --save-dev 2>/dev/null || true
+
+      - name: Compilar projeto
+        run: |
+          npx vite build --emptyOutDir || npm run build
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Fazer upload do site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
