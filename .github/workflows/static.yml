@@ -28,14 +28,46 @@ jobs:
           if [ -n "$LATEST_ZIP" ]; then
             echo "Encontrado arquivo $LATEST_ZIP. Extraindo arquivos..."
             unzip -o "$LATEST_ZIP" -d .
+          else
+            echo "Nenhum arquivo zip encontrado na raiz."
           fi
-          # Auto-correção para compatibilidade de versões antigas de slides
-          if [ -f src/data/defaultSlides.ts ] && ! grep -q "INITIAL_DATABASE_SLIDES" src/data/defaultSlides.ts; then
-            echo 'export const INITIAL_DATABASE_SLIDES = [];' >> src/data/defaultSlides.ts
-          fi
+          # Forçar chave nova de cache de slides para atualizar imediatamente no navegador
+          sed -i "s|camaleao_banner_slides_v[0-9]*|camaleao_banner_slides_v7|g" src/components/BannerSlider.tsx 2>/dev/null || true
           mkdir -p public/slides public/banners
           cp -f *.jpg *.png public/ 2>/dev/null || true
           cp -f *.jpg *.png public/banners/ 2>/dev/null || true
+
+      - name: Restaurar slides do carrossel
+        run: |
+          python3 - << 'EOF'
+          import json, os
+          slides = [
+            {"id": "40752aa7-66df-423f-ac56-bb9e876e7ca3", "url": "./slides/slide_2_40752aa7-66df-423f-ac56-bb9e876e7ca3.jpg", "title": "1900 X 900 S"},
+            {"id": "2665c526-6cd4-462d-b929-7640034c047b", "url": "./slides/slide_3_2665c526-6cd4-462d-b929-7640034c047b.jpg", "title": "1900 X 900 1"},
+            {"id": "0348b022-d65a-47b0-8339-8a7ff9e07dd1", "url": "./slides/slide_4_0348b022-d65a-47b0-8339-8a7ff9e07dd1.jpg", "title": "1900 X 900 A"},
+            {"id": "1e336c17-691c-4380-b13c-bdcb16eefff2", "url": "./slides/slide_5_1e336c17-691c-4380-b13c-bdcb16eefff2.jpg", "title": "1900 X 900 E"},
+            {"id": "66b3abd8-38c9-4788-82a5-cca818946cf9", "url": "./slides/slide_6_66b3abd8-38c9-4788-82a5-cca818946cf9.jpg", "title": "1900 X 900 F"},
+            {"id": "edd0aec4-cfbf-4659-a9c9-33c308b1ef40", "url": "./slides/slide_7_edd0aec4-cfbf-4659-a9c9-33c308b1ef40.jpg", "title": "1900 X 900 G"},
+            {"id": "7476645d-c81e-4cbc-8166-b8b460ab4196", "url": "./slides/slide_8_7476645d-c81e-4cbc-8166-b8b460ab4196.jpg", "title": "1900 X 900 J"},
+            {"id": "7a0756e2-204a-401f-8651-6531a694edcc", "url": "./slides/slide_9_7a0756e2-204a-401f-8651-6531a694edcc.jpg", "title": "1900 X 900 M"},
+            {"id": "49ada1da-ca37-4795-8dff-4135b0165249", "url": "./slides/slide_10_49ada1da-ca37-4795-8dff-4135b0165249.jpg", "title": "1900 X 900 SD"},
+            {"id": "edbec764-174a-45de-917f-19f5a1bb00ad", "url": "./slides/slide_11_edbec764-174a-45de-917f-19f5a1bb00ad.jpg", "title": "1900 X 900D"},
+            {"id": "0dc4fc22-6fce-4e7c-a9aa-2e0a2c8c7667", "url": "./slides/slide_12_0dc4fc22-6fce-4e7c-a9aa-2e0a2c8c7667.jpg", "title": "1920 X 900"},
+            {"id": "358fe01a-21ae-4f52-931c-6e64f52e3f24", "url": "./slides/slide_13_358fe01a-21ae-4f52-931c-6e64f52e3f24.jpg", "title": "AYRCOMP 1900 X 900"},
+            {"id": "4631c4f5-8237-4699-b4f1-96fee8756afa", "url": "./slides/slide_14_4631c4f5-8237-4699-b4f1-96fee8756afa.jpg", "title": "ESPAÇO 1900 X900"},
+            {"id": "03094074-db9d-406a-beae-a85d7da1a662", "url": "./slides/slide_15_03094074-db9d-406a-beae-a85d7da1a662.jpg", "title": "PERFIL CIDADAO"},
+            {"id": "3146f7b5-e4d6-45cd-97e8-385f94218058", "url": "./slides/slide_16_3146f7b5-e4d6-45cd-97e8-385f94218058.jpg", "title": "MAURUTECH INFORMATICA"},
+            {"id": "0509c605-0efb-48ae-9282-6d392f45306e", "url": "./slides/slide_17_0509c605-0efb-48ae-9282-6d392f45306e.jpg", "title": "BIG LOVE"}
+          ]
+          os.makedirs('src/data', exist_ok=True)
+          with open('src/data/defaultSlides.ts', 'w') as f:
+              f.write('import { SlideItem } from "../types/radio";\n\nexport const INITIAL_DATABASE_SLIDES: SlideItem[] = ' + json.dumps(slides, indent=2) + ';\n')
+          print('Slides restaurados com sucesso!')
+          EOF
+          for f in public/slides/slide_*_*.jpg; do
+            num=$(echo "$f" | sed -E 's/.*slide_([0-9]+)_.*/\1/')
+            cp -f "$f" "public/slides/slide_${num}.jpg" 2>/dev/null || true
+          done
 
       - name: Configurar Node.js
         uses: actions/setup-node@v5
@@ -50,6 +82,9 @@ jobs:
       - name: Compilar projeto
         run: |
           npx vite build --emptyOutDir || npm run build
+          mkdir -p dist/slides
+          cp -rf public/slides/* dist/slides/ 2>/dev/null || true
+          cp -f *.jpg *.png dist/ 2>/dev/null || true
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
